@@ -7,23 +7,21 @@ import type { RegisterInput } from "../validators/auth.validators.js";
 export async function register(data: RegisterInput) {
     const {username, email, password} = data;
 
-    const existingEmail = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findFirst({
         where: {
-            email 
+            OR: [
+                { email },
+                { username},
+            ],
         },
     });
 
-    if(existingEmail) {
-        throw new ApiError(400, "Email already exists");
-    }
+    if(existingUser){
+        if(existingUser.email == email){
+            throw new ApiError(400, "Email already exists")
+        }
 
-    const existingUsername = await prisma.user.findUnique({
-        where: {
-            username
-        },
-    });
-    if(existingUsername) {
-       throw new ApiError(400, "Username already exists")
+        throw new ApiError(400, "Username already exists")
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -43,7 +41,6 @@ export async function register(data: RegisterInput) {
             createdAt: true
         }
     });
-
     return user;
 
 }

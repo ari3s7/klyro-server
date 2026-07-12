@@ -22,9 +22,24 @@ model User {
   isOnline  Boolean  @default(false)
   lastSeen  DateTime?
 
+  refreshTokens  RefreshToken[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([username])
   @@index([email])
+}
+
+model RefreshToken {
+  id      String  @id @default(cuid())
+
+  token   String
+  expireAt  DateTime
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+
 }

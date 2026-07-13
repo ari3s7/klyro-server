@@ -2,7 +2,8 @@ import type { Request, Response} from 'express';
 import { asyncHandler } from '../utils/aysncHandler.js';
 import { loginSchema, registerSchema } from '../validators/auth.validators.js';
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { login, register } from '../services/auth.service.js';
+import { login, refresh, register } from '../services/auth.service.js';
+import { ApiError } from '../utils/ApiError.js';
 
 export const registerUser = asyncHandler(async(req: Request, res: Response) => {
      const data = registerSchema.parse(req.body);
@@ -17,9 +18,34 @@ export const registerUser = asyncHandler(async(req: Request, res: Response) => {
 export async function loginUser(req: Request, res: Response) {
    const data = loginSchema.parse(req.body);
 
-   const tokens = await login(data);
+   const { accessToken, refreshToken } = await login(data);
+
+   res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+   })
 
    res.status(200).json(
-      new ApiResponse(true, "Login Successful", tokens)
+      new ApiResponse(true, "Login Successful", {
+         accessToken
+      })
    );
 };
+
+export async function refreshAccessToken (req: Request, res: Response){
+   const refreshToken = req.cookies.refreshToken;
+
+   if(!refreshToken){
+      throw new ApiError(401, "Unauthorized");
+   }
+
+   const accessToken  = await refresh(refreshToken);
+
+   res.status(200).json(
+      new ApiResponse(true, "Access token refreshed", {
+         accessToken,
+      })
+   );
+}

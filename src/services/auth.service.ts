@@ -2,8 +2,9 @@ import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import { ApiError } from "../utils/ApiError.js";
 import type { LoginInput, RegisterInput } from "../validators/auth.validators.js";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt.js";
 import type { JwtPayload } from "../types/jwt.types.js";
+import crypto from "crypto";
 
 
 export async function register(data: RegisterInput) {
@@ -71,10 +72,11 @@ export async function login(data: LoginInput) {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
     const refreshTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const hashedRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
 
     await prisma.refreshToken.create({
         data: {
-            token: refreshToken,
+            token: hashedRefreshToken,
             userId: user.id,
             expireAt: refreshTokenExpiresAt
         }
@@ -82,3 +84,31 @@ export async function login(data: LoginInput) {
 
     return { accessToken, refreshToken };
 } 
+
+export async function refresh(refreshToken: string) {
+
+    const payload = verifyRefreshToken(refreshToken);
+   
+    const hashedRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+
+    const storedToken = await prisma.refreshToken.findFirst({
+        where: {
+            token: hashedRefreshToken,
+            userId: payload.userId,
+        },
+    });
+    if(!storedToken) {
+        throw new ApiError(401, "Unauthorized");
+    }
+
+    if(storedToken.expireAt < new Date()) {
+        throw new ApiError(401, "Refresh token expired");
+    }
+
+    const accessToken = generateAccessToken({
+        userId: payload.userId,
+        email: payload.email,
+    });
+
+    return accessToken;
+}

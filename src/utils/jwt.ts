@@ -20,3 +20,10 @@ export function verifyRefreshToken(token: string): JwtPayload {
         env.REFRESH_TOKEN_SECRET
     ) as JwtPayload
 }
+
+export function verifyAccessToken(token: string): JwtPayload {
+    return jwt.verify(
+        token,
+        env.ACCESS_TOKEN_SECRET
+    ) as JwtPayload;
+}

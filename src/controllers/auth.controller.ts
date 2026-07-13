@@ -49,3 +49,13 @@ export async function refreshAccessToken (req: Request, res: Response){
       })
    );
 }
+
+export async function getCurrentUser (req: Request, res:Response) {
+   res.status(200).json(
+      new ApiResponse(
+         true,
+         "Current User fetched successfully",
+         req.user
+      )
+   );
+}

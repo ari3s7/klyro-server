@@ -112,3 +112,13 @@ export async function refresh(refreshToken: string) {
 
     return accessToken;
 }
+
+export async function logout(refreshToken: string) {
+    const hashedToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+
+    await prisma.refreshToken.deleteMany({
+        where: {
+            token: hashedToken,
+        }
+    })
+}

@@ -2,7 +2,7 @@ import type { Request, Response} from 'express';
 import { asyncHandler } from '../utils/aysncHandler.js';
 import { loginSchema, registerSchema } from '../validators/auth.validators.js';
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { login, refresh, register } from '../services/auth.service.js';
+import { login, logout, refresh, register } from '../services/auth.service.js';
 import { ApiError } from '../utils/ApiError.js';
 
 export const registerUser = asyncHandler(async(req: Request, res: Response) => {
@@ -57,5 +57,19 @@ export async function getCurrentUser (req: Request, res:Response) {
          "Current User fetched successfully",
          req.user
       )
+   );
+}
+
+export async function logoutUser (req: Request, res: Response) {
+   const refreshToken = req.cookies.refreshToken;
+
+   if(refreshToken) {
+      await logout(refreshToken);
+   }
+
+   res.clearCookie("refreshToken");
+
+   res.status(200).json(
+      new ApiResponse(true, "Logged out successfully")
    );
 }

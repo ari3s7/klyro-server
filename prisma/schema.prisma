@@ -13,36 +13,34 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  avatar    String?
-  bio       String?
-  isOnline  Boolean  @default(false)
-  lastSeen  DateTime?
+  id       String    @id @default(cuid())
+  username String    @unique
+  email    String    @unique
+  password String
+  avatar   String?
+  bio      String?
+  isOnline Boolean   @default(false)
+  lastSeen DateTime?
 
-  refreshTokens  RefreshToken[]
-  ownedServers Server[] @relation("ServerOwner")
-  serverMemberships  ServerMember[]
-  messages  Message[]
+  refreshTokens     RefreshToken[]
+  ownedServers      Server[]       @relation("ServerOwner")
+  serverMemberships ServerMember[]
+  messages          Message[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
 }
 
 model RefreshToken {
-  id      String  @id @default(cuid())
+  id String @id @default(cuid())
 
-  token   String  @unique
-  expiresAt  DateTime
+  token     String   @unique
+  expireAt DateTime
   userId    String
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
   @@index([userId])
-
 }
 
 enum ChannelType {
@@ -59,32 +57,32 @@ enum MessageType {
 }
 
 model Server {
-  id   String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  name  String
-  description  String?
-  avatar  String?
+  name        String
+  description String?
+  avatar      String?
   inviteCode  String? @unique
 
-  ownerId   String
-  owner    User @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId  String
+  owner    User           @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members  ServerMember[]
-  channels  Channel[]
+  channels Channel[]
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ServerMember {
-  id   String @id @default(cuid())
+  id String @id @default(cuid())
 
-  serverId  String
-  server    Server  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  serverId String
+  server   Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
 
-  userId  String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  joinedAt  DateTime  @default(now())
+  joinedAt DateTime @default(now())
 
   @@unique([serverId, userId])
   @@index([serverId])
@@ -92,45 +90,45 @@ model ServerMember {
 }
 
 model Channel {
-  id    String  @id @default(cuid())
+  id String @id @default(cuid())
 
-  serverId   String
-  server     Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  serverId String
+  server   Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
 
-  name    String
-  description    String?
+  name        String
+  description String?
 
-  type   ChannelType  @default(TEXT)
-  position   Int    @default(0)
+  type     ChannelType @default(TEXT)
+  position Int         @default(0)
 
-  messages   Message[]
+  messages Message[]
 
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([serverId])
   @@unique([serverId, name])
+  @@index([serverId])
 }
 
 model Message {
-  id   String  @id  @default(cuid())
+  id String @id @default(cuid())
 
-  channelId   String
-  channel     Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
-  senderId    String
-  sender      User     @relation(fields:[senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 
-  content   String?
+  content String?
 
-  type   MessageType  @default(TEXT)
+  type MessageType @default(TEXT)
 
-  isEdited   Boolean  @default(false)
-  deletedAt  DateTime?
-  attachments   Attachment[]
+  isEdited    Boolean      @default(false)
+  deletedAt   DateTime?
+  attachments Attachment[]
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([channelId])
   @@index([senderId])
@@ -139,16 +137,17 @@ model Message {
 model Attachment {
   id String @id @default(cuid())
 
-  messageId  String
-  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   url String
 
-  fileName  String
-  mimeType  String
+  fileName String
+  mimeType String
 
-  size  Int
+  size Int
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
+
   @@index([messageId])
 }

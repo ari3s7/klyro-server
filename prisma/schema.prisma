@@ -112,3 +112,26 @@ model Channel {
   @@unique([serverId, name])
 }
 
+model Message {
+  id   String  @id  @default(cuid())
+
+  channelId   String
+  channel     Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  senderId    String
+  sender      User     @relation(fields:[senderId], references: [id], onDelete: Cascade)
+
+  content   String?
+
+  type   MessageType  @default(TEXT)
+
+  isEdited   Boolean  @default(false)
+  deletedAt  DateTime?
+  attachments   Attachment[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+
+  @@index([channelId])
+  @@index([senderId])
+}

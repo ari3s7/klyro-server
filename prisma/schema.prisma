@@ -23,13 +23,12 @@ model User {
   lastSeen  DateTime?
 
   refreshTokens  RefreshToken[]
-  ownedServers Server[]
+  ownedServers Server[] @relation("ServerOwner")
+  serverMemberships  ServerMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([username])
-  @@index([email])
 }
 
 model RefreshToken {
@@ -42,6 +41,7 @@ model RefreshToken {
   createdAt  DateTime @default(now())
 
   @@index([userId])
+  @@index([token])
 
 }
 
@@ -67,8 +67,25 @@ model Server {
   inviteCode  String? @unique
 
   ownerId   String
-  owner    User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner    User @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members  ServerMember[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model ServerMember {
+  id   String @id @default(cuid())
+
+  serverId  String
+  server    Server  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt  DateTime  @default(now())
+
+  @@unique([serverId, userId])
+  @@index([serverId])
+  @@index([userId])
 }

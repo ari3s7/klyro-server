@@ -23,6 +23,7 @@ model User {
   lastSeen  DateTime?
 
   refreshTokens  RefreshToken[]
+  ownedServers Server[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -42,4 +43,32 @@ model RefreshToken {
 
   @@index([userId])
 
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
+  AUDIO
+}
+
+model Server {
+  id   String   @id @default(cuid())
+
+  name  String
+  description  String?
+  avatar  String?
+  inviteCode  String? @unique
+
+  ownerId   String
+  owner    User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

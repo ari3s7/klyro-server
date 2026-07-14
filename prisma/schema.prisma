@@ -69,6 +69,7 @@ model Server {
   ownerId   String
   owner    User @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members  ServerMember[]
+  channels  Channel[]
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -89,3 +90,25 @@ model ServerMember {
   @@index([serverId])
   @@index([userId])
 }
+
+model Channel {
+  id    String  @id @default(cuid())
+
+  serverId   String
+  server     Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  name    String
+  description    String?
+
+  type   ChannelType  @default(TEXT)
+  position   Int    @default(0)
+
+  messages   Message[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([serverId])
+  @@unique([serverId, name])
+}
+

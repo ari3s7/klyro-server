@@ -25,6 +25,7 @@ model User {
   refreshTokens  RefreshToken[]
   ownedServers Server[] @relation("ServerOwner")
   serverMemberships  ServerMember[]
+  messages  Message[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -134,4 +135,21 @@ model Message {
 
   @@index([channelId])
   @@index([senderId])
+}
+
+model Attachment {
+  id String @id @default(cuid())
+
+  messageId  String
+  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  url String
+
+  fileName  String
+  mimeType  String
+
+  size  Int
+
+  createdAt   DateTime @default(now())
+  @@index([messageId])
 }

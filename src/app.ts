@@ -3,7 +3,7 @@ import helmet from "helmet";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/notFound.middleware.js";
 import healthRoutes from "./routes/health.route.js";
-import authRoutes from "./routes/auth.route.js";
+import authRoutes from "./modules/auth/auth.route.js";
 import cookieParser from "cookie-parser";
 
 const app = express();

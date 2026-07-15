@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
 import bcrypt from "bcrypt";
 import { ApiError } from "../../utils/ApiError.js";
-import type { LoginInput, RegisterInput } from "../../validators/auth.validators.js";
+import type { LoginInput, RegisterInput } from "./auth.validators.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
 import type { JwtPayload } from "../../types/jwt.types.js";
 import crypto from "crypto";

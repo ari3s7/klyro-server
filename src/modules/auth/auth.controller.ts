@@ -1,6 +1,6 @@
 import type { Request, Response} from 'express';
 import { asyncHandler } from '../../utils/aysncHandler.js';
-import { loginSchema, registerSchema } from '../../validators/auth.validators.js';
+import { loginSchema, registerSchema } from './auth.validators.js';
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { login, logout, refresh, register } from './auth.service.js';
 import { ApiError } from '../../utils/ApiError.js';

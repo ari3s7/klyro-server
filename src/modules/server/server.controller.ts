@@ -12,7 +12,7 @@ export async function createServerController(req: Request, res: Response) {
 export async function getServerController(req: Request, res: Response) {
     const servers = await getMyServers(req.user!.id);
 
-    res.status(201).json(
+    res.status(200).json(
         new ApiResponse(true, "Server fetched successfully", servers)
     );
 }

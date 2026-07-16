@@ -6,4 +6,9 @@ export const createServerSchema = z.object({
     description: z.string().trim().max(500).optional(),
 })
 
+export const joinServerSchema = z.object({
+    inviteCode: z.string(),
+})
+
 export type CreateServerInput = z.infer<typeof createServerSchema>
+export type JoinServerInput = z.infer<typeof joinServerSchema>

@@ -4,6 +4,6 @@ import { createServerController } from './server.controller.js';
 
 const router =  Router();
 
-router.post("/create", authenticate, createServerController);
+router.post("/", authenticate, createServerController);
 
 export default router;

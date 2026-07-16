@@ -36,3 +36,25 @@ export async function createServer( userId: string, data: CreateServerInput) {
        return server;
     });
 } 
+
+export async function getMyServers(userId: string) {
+    const memberships = await prisma.serverMember.findMany({
+        where: {
+            userId,
+        },
+        select: {
+            server: {
+                select : {
+                    id: true,
+                    name: true,
+                    description: true,
+                    avatar: true,
+                    inviteCode: true,
+
+                },
+            },
+        },
+    });
+
+    return memberships.map((membership) => membership.server);
+}

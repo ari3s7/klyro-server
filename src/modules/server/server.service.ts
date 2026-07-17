@@ -76,6 +76,8 @@ export async function getServer(serverId: string, userId: string) {
             },
         },
         select: {
+            server : { 
+                select : {
                     id: true,
                     name: true,
                     description: true,
@@ -90,7 +92,7 @@ export async function getServer(serverId: string, userId: string) {
                             position: "asc",
                         },
                     },
-                },
+          }  }   },
     });
 
     if(!membership){
@@ -98,4 +100,66 @@ export async function getServer(serverId: string, userId: string) {
     }
      return membership;
 }
+
+export async function joinServer(inviteCode: string, userId: string) {
+    const server = await prisma.server.findUnique({
+        where: {
+            inviteCode,
+        },
+    });
+
+    if(!server){
+        throw new ApiError(404, "Invalid invite code");
+    };
+
+    const existingMember = await prisma.serverMember.findUnique({
+        where: {
+            serverId_userId : {
+                serverId : server.id,
+                userId,
+            },
+        },
+    });
+
+    if(existingMember) {
+        throw new ApiError(400, "You are already member of this server");
+    }
+
+    await prisma.serverMember.create({
+        data: {
+            serverId: server.id,
+            userId
+        },
+    });
+
+    const joinedServer = await prisma.server.findUnique({
+        where: {
+            id: server.id,
+        },
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            avatar: true,
+            owner : {
+                select : {
+                    id: true,
+                    username: true,
+                    avatar: true,
+                },
+            },
+            channels : {
+                select : {
+                    id: true,
+                    name: true,
+                    description: true,
+                    type: true,
+                    position: true,
+                },
+            },
+        },
+        
+    });
+    console.log(joinedServer);
+};
 

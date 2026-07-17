@@ -1,7 +1,7 @@
 import type{ Request, Response } from 'express';
-import { createServer, getMyServers, getServer } from "./server.service.js";
+import { createServer, getMyServers, getServer, joinServer } from "./server.service.js";
 import { ApiResponse } from '../../utils/ApiResponse.js';
-import { getServerSchema } from './server.validator.js';
+import { getServerSchema, joinServerSchema } from './server.validator.js';
 
 
 export async function createServerController(req: Request, res: Response) {
@@ -25,5 +25,14 @@ export async function getServerContr(req: Request, res: Response) {
 
     const server = await getServer(serverId, userId);
 
-    return res.status(200).json( new ApiResponse(true, "Server fetched successfully", server))
-}
+    return res.status(200).json( new ApiResponse(true, "Server fetched successfully", server));
+};
+
+export async function joinServerController(req: Request, res: Response) {
+    const { inviteCode } = joinServerSchema.parse(req.body);
+
+    const userId = req.user!.id;
+    const server = await joinServer(inviteCode, userId);
+
+    return res.status(200).json( new ApiResponse(true, "Server joined", server));
+};

@@ -1,6 +1,7 @@
 import type{ Request, Response } from 'express';
-import { createServer, getMyServers } from "./server.service.js";
+import { createServer, getMyServers, getServer } from "./server.service.js";
 import { ApiResponse } from '../../utils/ApiResponse.js';
+import { getServerSchema } from './server.validator.js';
 
 
 export async function createServerController(req: Request, res: Response) {
@@ -15,4 +16,14 @@ export async function getServerController(req: Request, res: Response) {
     res.status(200).json(
         new ApiResponse(true, "Server fetched successfully", servers)
     );
+}
+
+export async function getServerContr(req: Request, res: Response) {
+    const { serverId } = getServerSchema.parse(req.params);
+
+    const userId = req.user!.id;
+
+    const server = await getServer(serverId, userId);
+
+    return res.status(200).json( new ApiResponse(true, "Server fetched successfully", server))
 }

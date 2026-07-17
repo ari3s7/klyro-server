@@ -1,5 +1,6 @@
 import { ChannelType } from "../../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
+import { ApiError } from "../../utils/ApiError.js";
 import { genInviteCode } from "../../utils/inviteCode.js";
 import type { CreateServerInput } from "./server.validator.js";
 
@@ -47,10 +48,7 @@ export async function getMyServers(userId: string) {
                 select : {
                     id: true,
                     name: true,
-                    description: true,
                     avatar: true,
-                    inviteCode: true,
-
                 },
             },
         },
@@ -58,3 +56,46 @@ export async function getMyServers(userId: string) {
 
     return memberships.map((membership) => membership.server);
 }
+
+export async function getServer(serverId: string, userId: string) {
+    const servers = await prisma.server.findUnique({
+        where: {
+            id: serverId,
+        }
+    });
+
+    if(!servers) {
+        throw new ApiError(404, "Server not found")
+    };
+
+    const membership = await prisma.serverMember.findUnique({
+        where :{
+            serverId_userId: {
+                serverId,
+                userId,
+            },
+        },
+        select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    owner : {
+                        select : {
+                            id: true,
+                            username: true,
+                        },
+                    },
+                    channels : {
+                        orderBy : {
+                            position: "asc",
+                        },
+                    },
+                },
+    });
+
+    if(!membership){
+        throw new ApiError(403, "You are not the member of the server")
+    }
+     return membership;
+}
+

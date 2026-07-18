@@ -2,7 +2,7 @@ import { ChannelType } from "../../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { genInviteCode } from "../../utils/inviteCode.js";
-import type { CreateServerInput } from "./server.validator.js";
+import type { CreateServerInput, UpdateServerInput } from "./server.validator.js";
 
 export async function createServer( userId: string, data: CreateServerInput) {
     const inviteCode = genInviteCode();
@@ -199,4 +199,48 @@ export async function leaveServer(serverId: string, userId: string){
     });
 
     return null;
+}
+
+export async function updateServer(serverId: string, userId: string, data: UpdateServerInput){
+    const server = await prisma.server.findUnique({
+        where: {
+            id: serverId,
+        },
+    });
+
+    if(!server){
+        throw new ApiError(404, "Server not found")
+    };
+
+    if(server.ownerId !== userId){
+        throw new ApiError(403, "Only the server owner can update the server")
+    };
+
+    const updateData = Object.fromEntries(
+        Object.entries(data).filter(([, value]) => value !== undefined)
+    );
+
+    if (Object.keys(updateData).length === 0) {
+        throw new ApiError(400, "Provide at least one field to update");
+    }
+    
+    const updatedServer = await prisma.server.update({
+        where: {
+            id: serverId,
+        },
+        data: updateData,
+        select : {
+            id: true,
+            name: true,
+            description: true,
+            avatar: true,
+            owner : {
+                select : {
+                    id: true,
+                    username: true,
+                },
+            },
+        },
+    });
+    return updatedServer;
 }

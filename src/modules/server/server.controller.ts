@@ -1,7 +1,7 @@
 import type{ Request, Response } from 'express';
-import { createServer, getMyServers, getServer, joinServer, leaveServer } from "./server.service.js";
+import { createServer, getMyServers, getServer, joinServer, leaveServer, updateServer } from "./server.service.js";
 import { ApiResponse } from '../../utils/ApiResponse.js';
-import { getServerSchema, joinServerSchema, leaveServerSchema } from './server.validator.js';
+import { getServerSchema, joinServerSchema, leaveServerSchema, updateServerParam, updateServerSchema } from './server.validator.js';
 
 
 export async function createServerController(req: Request, res: Response) {
@@ -46,5 +46,16 @@ export async function leaveServerController(req: Request, res: Response) {
 
     return res.status(200).json(
         new ApiResponse(true, "Left Server successfully", null)
+    );
+}
+
+export async function updateServerController (req: Request, res: Response) {
+    const { serverId } = updateServerParam.parse(req.params);
+    const data = updateServerSchema.parse(req.body);
+
+    const updatedServer = await updateServer(serverId, req.user!.id, data);
+
+    return res.status(200).json(
+        new ApiResponse( true, "Server updated successfully", updatedServer)
     );
 }

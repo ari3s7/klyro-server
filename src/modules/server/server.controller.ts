@@ -1,7 +1,7 @@
 import type{ Request, Response } from 'express';
-import { createServer, getMyServers, getServer, joinServer } from "./server.service.js";
+import { createServer, getMyServers, getServer, joinServer, leaveServer } from "./server.service.js";
 import { ApiResponse } from '../../utils/ApiResponse.js';
-import { getServerSchema, joinServerSchema } from './server.validator.js';
+import { getServerSchema, joinServerSchema, leaveServerSchema } from './server.validator.js';
 
 
 export async function createServerController(req: Request, res: Response) {
@@ -36,3 +36,15 @@ export async function joinServerController(req: Request, res: Response) {
 
     return res.status(200).json( new ApiResponse(true, "Server joined", server));
 };
+
+export async function leaveServerController(req: Request, res: Response) {
+    const { serverId } = leaveServerSchema.parse(req.body);
+
+    const userId = req.user!.id;
+
+    await leaveServer(serverId, userId);
+
+    return res.status(200).json(
+        new ApiResponse(true, "Left Server successfully", null)
+    );
+}

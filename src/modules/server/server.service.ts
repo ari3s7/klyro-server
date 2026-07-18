@@ -120,11 +120,9 @@ export async function joinServer(inviteCode: string, userId: string) {
             },
         },
     });
-
     if(existingMember) {
         throw new ApiError(400, "You are already member of this server");
     }
-
     await prisma.serverMember.create({
         data: {
             serverId: server.id,
@@ -163,3 +161,42 @@ export async function joinServer(inviteCode: string, userId: string) {
     console.log(joinedServer);
 };
 
+export async function leaveServer(serverId: string, userId: string){
+    const server = await prisma.server.findUnique({
+        where: {
+            id: serverId,
+        }
+    });
+
+    if(!server){
+        throw new ApiError(404, "Server not found");
+    }
+
+    const membership = await prisma.serverMember.findUnique({
+        where: {
+            serverId_userId: {
+                serverId,
+                userId,
+            },
+        },
+    });
+
+    if(!membership) {
+        throw new ApiError(403, "You are not a member of this server");
+    };
+
+    if(server.ownerId == userId){
+        throw new ApiError(400,  "Server owner cannot leave the server, Delete the server or transfer ownership.");
+    }
+
+    await prisma.serverMember.delete({
+        where: {
+            serverId_userId: {
+                serverId,
+                userId,
+            },
+        },
+    });
+
+    return null;
+}

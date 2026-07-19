@@ -244,3 +244,25 @@ export async function updateServer(serverId: string, userId: string, data: Updat
     });
     return updatedServer;
 }
+
+export async function deleteServer (serverId: string, userId: string){
+    const server = await prisma.server.findUnique({
+        where: {
+            id: serverId,
+        },
+    });
+
+    if(!server){
+        throw new ApiError(404, "Server not found")
+    };
+
+    if(server.ownerId !== userId){
+        throw new ApiError(403, "Only the server owner can delete the server")
+    };
+
+    await prisma.server.delete({
+        where: {
+            id: serverId,
+        },
+    })
+}

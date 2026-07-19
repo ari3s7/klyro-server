@@ -12,7 +12,7 @@ export const joinServerSchema = z.object({
     inviteCode: z.string(),
 })
 
-export const getServerSchema = z.object({
+export const serverIdParamSchema= z.object({
     serverId: z.string(),
 })
 
@@ -32,6 +32,6 @@ export const updateServerParam = z.object({
 
 export type CreateServerInput = z.infer<typeof createServerSchema>;
 export type JoinServerInput = z.infer<typeof joinServerSchema>;
-export type GetServerInput = z.infer<typeof getServerSchema>;
+export type ServerIdInput = z.infer<typeof serverIdParamSchema>;
 export type LeaveServerInput = z.infer<typeof leaveServerSchema>;
 export type UpdateServerInput = z.infer<typeof updateServerSchema>;

@@ -1,6 +1,6 @@
 import type{ Request, Response } from "express";
 import { createChannelSchema, serverIdParamSchema } from "./channel.validator.js";
-import { createChannel } from "./channel.service.js";
+import { createChannel, getChannel } from "./channel.service.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 
 export async function createChannelController(req: Request, res: Response){
@@ -8,9 +8,20 @@ export async function createChannelController(req: Request, res: Response){
     const userId = req.user!.id;
     const data = createChannelSchema.parse(req.body);
 
-    const channel = createChannel(serverId, userId, data);
+    const channel = await createChannel(serverId, userId, data);
 
     return res.status(201).json(
         new ApiResponse(true, "Channel created", channel)
+    );
+};
+
+export async function getChannelController(req: Request, res: Response) {
+    const { serverId } = serverIdParamSchema.parse(req.params);
+    const userId = req.user!.id;
+
+    const channel = await getChannel(serverId, userId);
+
+   return res.status(200).json(
+        new ApiResponse(true, "Channel", channel)
     );
 };

@@ -50,3 +50,43 @@ export async function createChannel(serverId: string, userId: string, data: Crea
     });
     return channel;
 }
+
+export async function getChannel(serverId: string, userId: string){
+    const server = await prisma.server.findUnique({
+        where: {
+            id: serverId,
+        },
+    });
+
+    if(!server){
+        throw new ApiError(404, "Server not found")
+    };
+
+    const user = prisma.serverMember.findUnique({
+        where: {
+            id: userId,
+        },
+    });
+
+    if(!user){
+        throw new ApiError(403, "You are not the member of this server")
+    }
+
+    const channels = await prisma.channel.findMany({
+      where: {
+        serverId,
+      },
+       orderBy: {
+        position: "asc",
+       },
+       select: {
+        id: true,
+        name: true,
+        description: true,
+        type: true,
+        position: true,
+       }
+    });
+
+    return channels;
+}

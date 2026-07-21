@@ -1,6 +1,8 @@
+import type { StringFormatParams } from "zod/v4/core";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import type { CreateChannelInput } from "./channel.validator.js";
+import type { UpdateServerInput } from "../server/server.validator.js";
 
 
 export async function createChannel(serverId: string, userId: string, data: CreateChannelInput){
@@ -89,4 +91,57 @@ export async function getChannel(serverId: string, userId: string){
     });
 
     return channels;
+}
+
+export async function updateChannel(channelId: string, userId: string, data: UpdateServerInput) {
+    const channel = await prisma.channel.findUnique({
+        where: {
+            id: channelId,
+        },
+         include : {
+            server : {
+                select: {
+                    ownerId: true,
+                },
+            },
+         },
+    });
+
+    console.log(channel);
+
+    if(!channel){ 
+        throw new ApiError(404, "Channel not found")
+    }
+
+    if(!channel.server){
+        throw new ApiError(404, "Server not found")
+    }
+
+    if (channel.server.ownerId !== userId){
+        throw new ApiError(403, "Only the server owner can update channel");
+    };
+
+    const updateData = Object.fromEntries(
+       Object.entries(data).filter(([, value]) => value !== undefined)
+    );
+
+    if (Object.keys(updateData).length === 0) {
+       throw new ApiError(400, "Provide at least one field to update");
+    }
+
+    const update = await prisma.channel.update({
+     where: {
+        id: channelId,
+     }, 
+     data: updateData,
+     select: {
+        id: true,
+        name: true,
+        description: true,
+        type: true,
+        position: true
+     }
+    });
+
+    return update;
 }

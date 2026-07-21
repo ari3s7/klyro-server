@@ -145,3 +145,35 @@ export async function updateChannel(channelId: string, userId: string, data: Upd
 
     return update;
 }
+
+export async function deleteChannel(channelId: string, userId: string){
+    const channel = await prisma.channel.findUnique({
+        where: {
+            id: channelId,
+        },
+        include: {
+            server: {
+                select:{
+                    ownerId: true,
+                },
+            },
+        },
+    });
+
+    if(!channel){
+        throw new ApiError(404, "Channel not found")
+    };
+
+    if(!channel.server){
+        throw new ApiError(404, "Server not found")
+    };
+
+    if(channel.server.ownerId !== userId){
+        throw new ApiError(403, "Only server owner can delete the channel")
+    };
+    await prisma.channel.delete({
+        where: {
+            id: channelId,
+        }
+    })
+}

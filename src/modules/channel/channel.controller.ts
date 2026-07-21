@@ -1,6 +1,6 @@
 import type{ Request, Response } from "express";
 import { channelIdSchema, createChannelSchema, serverIdParamSchema, updateChannelSchema } from "./channel.validator.js";
-import { createChannel, getChannel, updateChannel } from "./channel.service.js";
+import { createChannel, deleteChannel, getChannel, updateChannel } from "./channel.service.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 
 export async function createChannelController(req: Request, res: Response){
@@ -35,5 +35,16 @@ export async function updateChannelController(req: Request, res: Response){
 
     return res.status(200).json(
         new ApiResponse(true, "Channel Updated", channel)
+    );
+};
+
+export async function deleteChannelController(req: Request, res: Response){
+    const { channelId } = channelIdSchema.parse(req.params);
+    const userId = req.user!.id;
+    
+    await deleteChannel(channelId, userId)
+
+    return res.status(200).json(
+        new ApiResponse(true, "Channel deleted successfully", null)
     );
 };

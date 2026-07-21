@@ -94,6 +94,37 @@ export async function getAttachment(messageId: string, userId: string){
     });
 
     return attachment;
+};
 
-    
+export async function deleteAttachment(attachmentId: string, userId: string){
+    const attachment = await prisma.attachment.findUnique({
+        where: {
+            id: attachmentId
+        },
+    });
+
+    if(!attachment) {
+        throw new ApiError(404, "Attachment not found");
+    };
+
+    const message = await prisma.message.findUnique({
+        where: {
+            id: attachment.messageId
+        },
+    });
+
+    if(!message){
+        throw new ApiError(404, "Message not found")
+    };
+
+    if(message.senderId !== userId){
+        throw new ApiError(403, "You cannot delete this attachment")
+    };
+
+    await prisma.attachment.delete({
+        where: {
+            id: attachmentId,
+        },
+    });
 }
+

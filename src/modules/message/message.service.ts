@@ -1,9 +1,9 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
-import type { SendMessageInput } from "./message.validator.js";
+import type { MessageInput } from "./message.validator.js";
 
 
-export async function sendMessage(channelId: string, userId: string, data: SendMessageInput) {
+export async function sendMessage(channelId: string, userId: string, data: MessageInput) {
     const channel = await prisma.channel.findUnique({
         where: {
             id: channelId,
@@ -94,5 +94,44 @@ export async function getMessages(channelId: string, userId: string){
             },
         },
     });
-    return messages
+    return messages;
+}
+
+export async function updateMessage(messageId: string, userId: string, data: MessageInput){
+    const message = await prisma.message.findUnique({
+        where: {
+            id: messageId,
+        },
+    });
+
+    if(!message){
+        throw new ApiError(404, "Message not found")
+    };
+
+    if(userId !== message.senderId){
+        throw new ApiError(403, "You can't edit this message")
+    };
+
+    const update = await prisma.message.update({
+        where: {
+            id: messageId,
+        }, data: {
+           content: data.content,
+           isEdited: true
+        }, select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          isEdited: true,
+          sender : {
+            select: {
+                id: true,
+                username: true,
+                avatar: true,
+            },
+          },
+        },
+    });
+
+    return update;
 }

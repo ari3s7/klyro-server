@@ -8,5 +8,9 @@ export const attachmentSchema = z.object({
     size: z.number().positive(),
 })
 
+export const attachmentIdSchema = z.object({
+    attachmentId: z.string(),
+})
+
 
 export type AttachmentSchemaInput = z.infer<typeof attachmentSchema>;

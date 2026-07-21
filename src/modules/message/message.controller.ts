@@ -1,6 +1,6 @@
 import type {Request, Response} from 'express';
 import { channelIdParamSchema, messageIdSchema, messageSchema } from './message.validator.js';
-import { getMessages, sendMessage, updateMessage } from './message.service.js';
+import { deleteMessage, getMessages, sendMessage, updateMessage } from './message.service.js';
 import { ApiResponse } from '../../utils/ApiResponse.js';
 
 export async function sendMessageController(req: Request, res: Response){
@@ -36,5 +36,16 @@ export async function updateMessageController(req: Request, res: Response){
 
     return res.status(200).json(
         new ApiResponse(true, "Message updated", messages)
+    );
+}
+
+export async function deleteMessageController(req: Request, res: Response) {
+    const { messageId } = messageIdSchema.parse(req.params);
+    const userId = req.user!.id;
+
+    const delMessage = await deleteMessage(messageId, userId);
+
+    return res.status(200).json(
+        new ApiResponse(true, "Message deleted successfully", delMessage)
     );
 }

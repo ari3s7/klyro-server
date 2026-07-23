@@ -20,6 +20,13 @@ export async function loginUser(req: Request, res: Response) {
 
    const { accessToken, refreshToken } = await login(data);
 
+   res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000, 
+   });
+
    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,

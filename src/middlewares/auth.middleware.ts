@@ -4,20 +4,24 @@ import { prisma } from "../lib/prisma.js";
 import { verifyAccessToken } from "../utils/jwt.js";
 
 
-export async function authenticate(req: Request, res: Response, next: NextFunction) {
-    const authHeader = req.headers.authorization;
+export async function authenticate(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const authHeader = req.headers.authorization;
 
-    if(!authHeader?.startsWith("Bearer")) {
-        throw new ApiError(401, "Unauthorized");
-    }
+  const token =
+    req.cookies.accessToken ??
+    (authHeader?.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : undefined);
 
-    const token = authHeader.split(" ")[1];
+  if (!token) {
+    throw new ApiError(401, "Unauthorized");
+  }
 
-    if (!token) {
-        throw new ApiError(401, "Unauthorized");
-    }   
-
-    const payload = verifyAccessToken(token);
+  const payload = verifyAccessToken(token);
 
     const user = await prisma.user.findUnique({
     where: {

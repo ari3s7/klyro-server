@@ -73,7 +73,7 @@ export async function logoutUser (req: Request, res: Response) {
    if(refreshToken) {
       await logout(refreshToken);
    }
-
+   res.clearCookie("accessToken");
    res.clearCookie("refreshToken");
 
    res.status(200).json(

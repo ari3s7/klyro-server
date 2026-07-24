@@ -96,7 +96,6 @@ model Channel {
   server   Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
 
   name        String
-  description String?
 
   type     ChannelType @default(TEXT)
   position Int         @default(0)

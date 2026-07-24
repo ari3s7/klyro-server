@@ -46,7 +46,6 @@ export async function createChannel(serverId: string, userId: string, data: Crea
        data: {
         serverId,
         name: data.name,
-        description: data.description,
         position,
        }
     });
@@ -84,7 +83,6 @@ export async function getChannel(serverId: string, userId: string){
        select: {
         id: true,
         name: true,
-        description: true,
         type: true,
         position: true,
        }

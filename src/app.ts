@@ -27,7 +27,7 @@ app.use(cookieParser())
 
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);
-app.use("/server", serverRoutes);
+app.use("/servers", serverRoutes);
 app.use("/", channelRoutes);
 app.use("/", messageRoutes);
 app.use("/", attachmentRoutes);

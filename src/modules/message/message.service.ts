@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import type { MessageInput } from "./message.validator.js";
+import { getIO } from "../../socket/socket.js";
 
 
 export async function sendMessage(channelId: string, userId: string, data: MessageInput) {
@@ -47,6 +48,8 @@ export async function sendMessage(channelId: string, userId: string, data: Messa
         },
     });
 
+    getIO().to(channelId).emit("message-created", message);
+
     return message;
 };
 
@@ -79,7 +82,7 @@ export async function getMessages(channelId: string, userId: string){
             channelId,
         },
         orderBy: {
-            createdAt: "desc"
+            createdAt: "asc"
         }, select : {
             id: true,
             content: true,

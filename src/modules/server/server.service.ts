@@ -28,7 +28,6 @@ export async function createServer( userId: string, data: CreateServerInput) {
         data: {
             serverId: server.id,
             name: "general",
-            description: "General discussion",
             type: ChannelType.TEXT,
             position: 0,
         }
@@ -150,7 +149,6 @@ export async function joinServer(inviteCode: string, userId: string) {
                 select : {
                     id: true,
                     name: true,
-                    description: true,
                     type: true,
                     position: true,
                 },

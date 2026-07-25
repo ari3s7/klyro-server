@@ -1,8 +1,13 @@
 import { Server } from "socket.io";
 
+const onlineSockets = new Set<string>();
+
 export function registerSocketHandlers(io: Server) {
   io.on("connection", (socket) => {
     console.log("Connected:", socket.id);
+
+    onlineSockets.add(socket.id);             
+  io.emit("online-count", onlineSockets.size); 
 
     socket.on("join-channel", (channelId: string) => {
         console.log(`${socket.id} joined ${channelId}`);
@@ -26,7 +31,6 @@ export function registerSocketHandlers(io: Server) {
     });
   }
 );
-
     socket.on(
      "typing-stop",
      ({ channelId, username }) => {
@@ -35,8 +39,15 @@ export function registerSocketHandlers(io: Server) {
     });
   }
 );
+
+socket.on("request-online-count", () => {
+  socket.emit("online-count", onlineSockets.size);
+});
     socket.on("disconnect", () => {
+       io.emit("online-count", onlineSockets.size);
+       onlineSockets.delete(socket.id);
       console.log("Disconnected:", socket.id);
+      
     });
   });
 }

@@ -28,12 +28,14 @@ export async function register(data: RegisterInput) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const avatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(username)}`;
 
     const user = await prisma.user.create({
         data: {
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            avatar: avatarUrl,
         },
         select : {
             id: true,

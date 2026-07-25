@@ -48,6 +48,7 @@ export async function getMyServers(userId: string) {
                     id: true,
                     name: true,
                     avatar: true,
+                    inviteCode: true,
                 },
             },
         },
@@ -80,6 +81,7 @@ export async function getServer(serverId: string, userId: string) {
                     id: true,
                     name: true,
                     description: true,
+                    inviteCode: true,
                     owner : {
                         select : {
                             id: true,

@@ -49,6 +49,12 @@ export async function getMyServers(userId: string) {
                     name: true,
                     avatar: true,
                     inviteCode: true,
+                    owner : {
+                        select : {
+                            id: true,
+                            username: true,
+                        },
+                    },
                     channels: {
                         orderBy: {
                             position: "asc"

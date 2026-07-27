@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const createChannelSchema = z.object({
     name: z.string().min(3).max(50),
+    type: z.enum(["TEXT", "VOICE"]),
 })
 
 export const serverIdParamSchema = z.object({

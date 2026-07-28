@@ -12,10 +12,14 @@ const onlineSockets = new Set<string>();
 
 export function registerSocketHandlers(io: Server) {
   io.use(socketAuthMiddleware);
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
     console.log("Authenticated user connected:", socket.data.userId);
 
-    onlineSockets.add(socket.id);             
+    onlineSockets.add(socket.id);
+    await prisma.user.update({
+  where: { id: socket.data.userId },
+  data: { isOnline: true },
+});             
   io.emit("online-count", onlineSockets.size); 
 
     socket.on("join-channel", (channelId: string) => {
@@ -126,7 +130,7 @@ socket.on("request-online-count", () => {
       io.to(to).emit("voice-ice-candidate", { from: socket.id, candidate });
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       io.emit("online-count", onlineSockets.size);
       onlineSockets.delete(socket.id);
 
@@ -134,6 +138,10 @@ socket.on("request-online-count", () => {
       for (const { channelId, userId } of affected) {
         socket.to(`voice:${channelId}`).emit("peer-left-voice", { userId, socketId: socket.id });
       }
+      await prisma.user.update({
+        where: { id: socket.data.userId },
+        data: { isOnline: false, lastSeen: new Date() },
+    });
 
       console.log("Disconnected:", socket.id);
     });

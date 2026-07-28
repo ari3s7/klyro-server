@@ -15,3 +15,22 @@ export async function getUserProfile(userId: string) {
 
   return user;
 }
+
+export async function updateUserProfile(userId: string, data: { bio?: string }) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.bio !== undefined ? { bio: data.bio } : {}),
+    },
+    select: {
+      id: true,
+      username: true,
+      avatar: true,
+      bio: true,
+      isOnline: true,
+      lastSeen: true,
+    },
+  });
+
+  return user;
+}

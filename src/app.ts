@@ -8,6 +8,7 @@ import serverRoutes from "./modules/server/server.route.js";
 import channelRoutes from "./modules/channel/channel.route.js";
 import messageRoutes from "./modules/message/message.route.js";
 import attachmentRoutes from "./modules/attachment/attachmnet.route.js";
+import userRoutes from "./modules/user/user.route.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -31,6 +32,7 @@ app.use("/servers", serverRoutes);
 app.use("/", channelRoutes);
 app.use("/", messageRoutes);
 app.use("/", attachmentRoutes);
+app.use("/", userRoutes);
 
 app.use(errorMiddleware);
 app.use(notFoundMiddleware);

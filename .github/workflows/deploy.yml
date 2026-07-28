@@ -5,6 +5,10 @@ on:
         branches:
             - main
 
+concurrency:
+  group: backend-deploy
+  cancel-in-progress: true
+
 jobs:
     deploy:
         name: Deploy to Azure VM
@@ -21,14 +25,28 @@ jobs:
                 script: |
                   set -e
 
+                  export PATH="$PATH:/home/azureuser/.npm-global/bin"
+
                   cd ~/klyro-server
-                  
-                  git pull origin main
 
-                  npm install
+                  echo "Pulling latest code..."
+                  git fetch origin
+                  git reset --hard origin/main
 
+                  echo "Installing dependencies..."
+                  npm ci
+
+                  echo "Generating Prisma Client..."
                   npx prisma generate
 
+                  echo "Applying database migrations..."
+                  npx prisma migrate deploy
+
+                  echo "Building..."
                   npm run build
 
+                  echo "Restarting PM2..."
                   pm2 restart klyro-server
+                  pm2 status
+
+                  echo "Deployment complete!"

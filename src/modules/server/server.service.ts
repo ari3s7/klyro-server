@@ -68,6 +68,25 @@ export async function getMyServers(userId: string) {
     return memberships.map((membership) => membership.server);
 }
 
+export async function getServerMembers(serverId: string) {
+  const memberships = await prisma.serverMember.findMany({
+    where: { serverId },
+    select: {
+      user: {
+        select: {
+          id: true,
+          username: true,
+          avatar: true,
+          isOnline: true,
+          lastSeen: true,
+        },
+      },
+    },
+  });
+
+  return memberships.map((membership) => membership.user);
+}
+
 export async function getServer(serverId: string, userId: string) {
     const servers = await prisma.server.findUnique({
         where: {

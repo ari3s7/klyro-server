@@ -19,7 +19,8 @@ export function registerSocketHandlers(io: Server) {
     await prisma.user.update({
   where: { id: socket.data.userId },
   data: { isOnline: true },
-});             
+});
+  io.emit("user-status-changed", { userId: socket.data.userId, isOnline: true });             
   io.emit("online-count", onlineSockets.size); 
 
     socket.on("join-channel", (channelId: string) => {
@@ -142,6 +143,7 @@ socket.on("request-online-count", () => {
         where: { id: socket.data.userId },
         data: { isOnline: false, lastSeen: new Date() },
     });
+    io.emit("user-status-changed", { userId: socket.data.userId, isOnline: false });
 
       console.log("Disconnected:", socket.id);
     });

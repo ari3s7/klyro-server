@@ -1,5 +1,5 @@
 import type{ Request, Response } from 'express';
-import { createServer, deleteServer, getMyServers, getServer, joinServer, leaveServer, updateServer } from "./server.service.js";
+import { createServer, deleteServer, getMyServers, getServer, getServerMembers, joinServer, leaveServer, updateServer } from "./server.service.js";
 import { ApiResponse } from '../../utils/ApiResponse.js';
 import { joinServerSchema, leaveServerSchema, serverIdParamSchema, updateServerParam, updateServerSchema } from './server.validator.js';
 
@@ -70,4 +70,14 @@ export async function deleteServerController(req: Request, res: Response){
     return res.status(200).json(
         new ApiResponse(true, "Server deleted successfully", null)
     );
+};
+
+export async function getServerMembersController(req: Request, res: Response) {
+  const { serverId } = serverIdParamSchema.parse(req.params);
+
+  const members = await getServerMembers(serverId);
+
+  res.status(200).json(
+    new ApiResponse(true, "Server members fetched successfully", members)
+  );
 }

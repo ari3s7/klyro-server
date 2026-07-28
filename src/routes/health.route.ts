@@ -6,7 +6,7 @@ const router = Router();
 
 router.get("/", (_, res) => {
     res.status(200).json(
-        new ApiResponse(true, "Api is running")
+        new ApiResponse(true, "Api is running🚀")
     );
 });
 

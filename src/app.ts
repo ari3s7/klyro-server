@@ -1,5 +1,6 @@
 import express from "express";
 import helmet from "helmet";
+import path from "path";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/notFound.middleware.js";
 import healthRoutes from "./routes/health.route.js";
@@ -24,7 +25,8 @@ app.use(
 
 app.use(helmet());
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
+app.use("/uploads", express.static(path.join(process.cwd(), "public", "uploads")));
 
 app.use("/health", healthRoutes);
 app.use("/auth", authRoutes);

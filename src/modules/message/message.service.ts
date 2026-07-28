@@ -31,18 +31,41 @@ export async function sendMessage(channelId: string, userId: string, data: Messa
         data: {
             channelId,
             senderId: userId,
-            content: data.content,
-            type: "TEXT",
+            content: data.content ?? null,
+            type: data.type || (data.attachments && data.attachments.length > 0 ? "IMAGE" : "TEXT"),
+            ...(data.attachments?.length
+                ? {
+                    attachments: {
+                        create: data.attachments.map((att) => ({
+                            url: att.url,
+                            fileName: att.fileName,
+                            mimeType: att.mimeType,
+                            size: att.size,
+                        })),
+                    },
+                }
+                : {}),
         },
         select : {
             id: true,
             content: true,
+            type: true,
             createdAt: true,
+            isEdited: true,
             sender: {
                 select : {
                     id: true,
                     username: true,
                     avatar: true,
+                },
+            },
+            attachments: {
+                select: {
+                    id: true,
+                    url: true,
+                    fileName: true,
+                    mimeType: true,
+                    size: true,
                 },
             },
         },
@@ -86,6 +109,7 @@ export async function getMessages(channelId: string, userId: string){
         }, select : {
             id: true,
             content: true,
+            type: true,
             createdAt: true,
             isEdited: true,
             sender : {
@@ -93,6 +117,15 @@ export async function getMessages(channelId: string, userId: string){
                     id: true,
                     username: true,
                     avatar: true,
+                },
+            },
+            attachments: {
+                select: {
+                    id: true,
+                    url: true,
+                    fileName: true,
+                    mimeType: true,
+                    size: true,
                 },
             },
         },
@@ -119,7 +152,7 @@ export async function updateMessage(messageId: string, userId: string, data: Mes
         where: {
             id: messageId,
         }, data: {
-           content: data.content,
+           content: data.content ?? null,
            isEdited: true
         }, select: {
           id: true,

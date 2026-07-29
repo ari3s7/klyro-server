@@ -126,11 +126,16 @@ model Message {
   deletedAt   DateTime?
   attachments Attachment[]
 
+  parentId String?
+  parent   Message?  @relation("MessageReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies  Message[] @relation("MessageReplies")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([channelId])
   @@index([senderId])
+  @@index([parentId])
 }
 
 model Attachment {

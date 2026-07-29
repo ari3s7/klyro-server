@@ -33,6 +33,7 @@ export async function sendMessage(channelId: string, userId: string, data: Messa
             senderId: userId,
             content: data.content ?? null,
             type: data.type || (data.attachments && data.attachments.length > 0 ? "IMAGE" : "TEXT"),
+            parentId: data.parentId ?? null,
             ...(data.attachments?.length
                 ? {
                     attachments: {
@@ -52,6 +53,18 @@ export async function sendMessage(channelId: string, userId: string, data: Messa
             type: true,
             createdAt: true,
             isEdited: true,
+            parentId: true,
+            parent: {
+                select: {
+                    id: true,
+                    content: true,
+                    sender: {
+                        select: {
+                            username: true,
+                        },
+                    },
+                },
+            },
             sender: {
                 select : {
                     id: true,
@@ -112,6 +125,18 @@ export async function getMessages(channelId: string, userId: string){
             type: true,
             createdAt: true,
             isEdited: true,
+            parentId: true,
+            parent: {
+                select: {
+                    id: true,
+                    content: true,
+                    sender: {
+                        select: {
+                            username: true,
+                        },
+                    },
+                },
+            },
             sender : {
                 select : {
                     id: true,

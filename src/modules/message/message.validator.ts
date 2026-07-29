@@ -13,6 +13,7 @@ export const messageSchema = z
     content: z.string().trim().max(2000).optional().nullable(),
     type: z.enum(["TEXT", "IMAGE", "VIDEO", "FILE", "AUDIO"]).optional(),
     attachments: z.array(attachmentItemSchema).optional(),
+    parentId: z.string().optional(),
   })
   .refine(
     (data) => (data.content && data.content.trim().length > 0) || (data.attachments && data.attachments.length > 0),

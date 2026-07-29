@@ -53,6 +53,7 @@ export async function sendMessage(channelId: string, userId: string, data: Messa
             type: true,
             createdAt: true,
             isEdited: true,
+            deletedAt: true,
             parentId: true,
             parent: {
                 select: {
@@ -125,6 +126,7 @@ export async function getMessages(channelId: string, userId: string){
             type: true,
             createdAt: true,
             isEdited: true,
+            deletedAt: true,
             parentId: true,
             parent: {
                 select: {
@@ -212,9 +214,20 @@ export async function deleteMessage(messageId: string, userId: string) {
         throw new ApiError(403, "You can't delete the message")
     };
 
-    await prisma.message.delete({
+    await prisma.message.update({
         where: {
             id: messageId,
+        },
+        data: {
+            deletedAt: new Date(),
+            content: null,
+        },
+    });
+
+    // Also remove attachments for deleted messages
+    await prisma.attachment.deleteMany({
+        where: {
+            messageId,
         },
     });
 }

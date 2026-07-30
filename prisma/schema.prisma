@@ -27,6 +27,10 @@ model User {
   serverMemberships ServerMember[]
   messages          Message[]
 
+  isVerified    Boolean  @default(false)
+  verificationToken    String?
+  verificationTokenExpires  DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

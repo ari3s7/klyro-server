@@ -1,7 +1,7 @@
 import type{ Request, Response } from 'express';
-import { createServer, deleteServer, getMyServers, getServer, getServerMembers, joinServer, leaveServer, updateServer } from "./server.service.js";
+import { createServer, deleteServer, getMyServers, getServer, getServerMembers, joinServer, kickMember, leaveServer, updateServer } from "./server.service.js";
 import { ApiResponse } from '../../utils/ApiResponse.js';
-import { joinServerSchema, leaveServerSchema, serverIdParamSchema, updateServerParam, updateServerSchema } from './server.validator.js';
+import { joinServerSchema, kickMemberParamSchema, leaveServerSchema, serverIdParamSchema, updateServerParam, updateServerSchema } from './server.validator.js';
 
 
 export async function createServerController(req: Request, res: Response) {
@@ -79,5 +79,15 @@ export async function getServerMembersController(req: Request, res: Response) {
 
   res.status(200).json(
     new ApiResponse(true, "Server members fetched successfully", members)
+  );
+}
+
+export async function kickMemberController(req: Request, res: Response) {
+  const { serverId, memberId } = kickMemberParamSchema.parse(req.params);
+
+  await kickMember(serverId, req.user!.id, memberId);
+
+  return res.status(200).json(
+    new ApiResponse(true, "Member kicked successfully", null)
   );
 }

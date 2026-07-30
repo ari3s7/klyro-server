@@ -196,6 +196,12 @@ export async function updateMessage(messageId: string, userId: string, data: Mes
         },
     });
 
+    try {
+        getIO().to(message.channelId).emit("message-updated", update);
+    } catch (err) {
+        console.error("Socket emit message-updated failed:", err);
+    }
+
     return update;
 };
 
@@ -214,12 +220,14 @@ export async function deleteMessage(messageId: string, userId: string) {
         throw new ApiError(403, "You can't delete the message")
     };
 
+    const deletedAt = new Date();
+
     await prisma.message.update({
         where: {
             id: messageId,
         },
         data: {
-            deletedAt: new Date(),
+            deletedAt,
             content: null,
         },
     });
@@ -230,4 +238,14 @@ export async function deleteMessage(messageId: string, userId: string) {
             messageId,
         },
     });
+
+    try {
+        getIO().to(message.channelId).emit("message-deleted", {
+            id: messageId,
+            channelId: message.channelId,
+            deletedAt,
+        });
+    } catch (err) {
+        console.error("Socket emit message-deleted failed:", err);
+    }
 }

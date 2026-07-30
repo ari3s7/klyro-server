@@ -35,3 +35,8 @@ export type JoinServerInput = z.infer<typeof joinServerSchema>;
 export type ServerIdInput = z.infer<typeof serverIdParamSchema>;
 export type LeaveServerInput = z.infer<typeof leaveServerSchema>;
 export type UpdateServerInput = z.infer<typeof updateServerSchema>;
+
+export const kickMemberParamSchema = z.object({
+    serverId: z.string(),
+    memberId: z.string(),
+});

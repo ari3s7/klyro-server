@@ -1,8 +1,75 @@
-import { ChannelType } from "../../../generated/prisma/enums.js";
+import { ChannelType, MessageType } from "../../../generated/prisma/enums.js";
 import { prisma } from "../../lib/prisma.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { genInviteCode } from "../../utils/inviteCode.js";
 import type { CreateServerInput, UpdateServerInput } from "./server.validator.js";
+import { getIO } from "../../socket/socket.js";
+
+async function sendSystemLogMessage(serverId: string, userId: string, content: string) {
+    try {
+        let generalChannel = await prisma.channel.findFirst({
+            where: { serverId, name: "general" },
+        });
+
+        if (!generalChannel) {
+            generalChannel = await prisma.channel.findFirst({
+                where: { serverId, type: ChannelType.TEXT },
+            });
+        }
+
+        if (!generalChannel) return;
+
+        const message = await prisma.message.create({
+            data: {
+                channelId: generalChannel.id,
+                senderId: userId,
+                content,
+                type: MessageType.TEXT,
+            },
+            select: {
+                id: true,
+                content: true,
+                type: true,
+                createdAt: true,
+                isEdited: true,
+                deletedAt: true,
+                parentId: true,
+                parent: {
+                    select: {
+                        id: true,
+                        content: true,
+                        sender: {
+                            select: { username: true },
+                        },
+                    },
+                },
+                sender: {
+                    select: {
+                        id: true,
+                        username: true,
+                        avatar: true,
+                    },
+                },
+                attachments: {
+                    select: {
+                        id: true,
+                        url: true,
+                        fileName: true,
+                        mimeType: true,
+                        size: true,
+                    },
+                },
+            },
+        });
+
+        const io = getIO();
+        if (io) {
+            io.to(generalChannel.id).emit("message-created", message);
+        }
+    } catch (err) {
+        console.error("Failed to send system log message:", err);
+    }
+}
 
 export async function createServer( userId: string, data: CreateServerInput) {
     const inviteCode = genInviteCode();
@@ -161,6 +228,15 @@ export async function joinServer(inviteCode: string, userId: string) {
         },
     });
 
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true },
+    });
+
+    if (user) {
+        await sendSystemLogMessage(server.id, userId, `${user.username} joined the server`);
+    }
+
     const joinedServer = await prisma.server.findUnique({
         where: {
             id: server.id,
@@ -219,6 +295,11 @@ export async function leaveServer(serverId: string, userId: string){
         throw new ApiError(400,  "Server owner cannot leave the server, Delete the server or transfer ownership.");
     }
 
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true },
+    });
+
     await prisma.serverMember.delete({
         where: {
             serverId_userId: {
@@ -227,6 +308,10 @@ export async function leaveServer(serverId: string, userId: string){
             },
         },
     });
+
+    if (user) {
+        await sendSystemLogMessage(serverId, userId, `${user.username} left the server`);
+    }
 
     return null;
 }
@@ -295,4 +380,55 @@ export async function deleteServer (serverId: string, userId: string){
             id: serverId,
         },
     })
+}
+
+export async function kickMember(serverId: string, ownerId: string, targetUserId: string) {
+    const server = await prisma.server.findUnique({
+        where: { id: serverId },
+    });
+
+    if (!server) {
+        throw new ApiError(404, "Server not found");
+    }
+
+    if (server.ownerId !== ownerId) {
+        throw new ApiError(403, "Only the server owner can kick members");
+    }
+
+    if (targetUserId === ownerId) {
+        throw new ApiError(400, "You cannot kick yourself");
+    }
+
+    const membership = await prisma.serverMember.findUnique({
+        where: {
+            serverId_userId: {
+                serverId,
+                userId: targetUserId,
+            },
+        },
+    });
+
+    if (!membership) {
+        throw new ApiError(404, "User is not a member of this server");
+    }
+
+    const targetUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { username: true },
+    });
+
+    await prisma.serverMember.delete({
+        where: {
+            serverId_userId: {
+                serverId,
+                userId: targetUserId,
+            },
+        },
+    });
+
+    if (targetUser) {
+        await sendSystemLogMessage(serverId, targetUserId, `${targetUser.username} was kicked from the server`);
+    }
+
+    return null;
 }

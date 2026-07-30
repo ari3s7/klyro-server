@@ -100,7 +100,7 @@ export const verifyEmailController = asyncHandler(async (req, res) => {
 
     await verifyEmail(token);
 
-    return res.redirect(
-        `${process.env.CLIENT_URL}/login?verified=true`
+    return res.status(200).json(
+        new ApiResponse(true, "Email verified successfully")
     );
 });

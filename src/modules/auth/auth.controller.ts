@@ -1,8 +1,8 @@
-import type { Request, Response} from 'express';
+import type { Request, Response, NextFunction} from 'express';
 import { asyncHandler } from '../../utils/aysncHandler.js';
 import { loginSchema, registerSchema } from './auth.validators.js';
 import { ApiResponse } from "../../utils/ApiResponse.js";
-import { login, logout, refresh, register } from './auth.service.js';
+import { login, logout, refresh, register, verifyEmail } from './auth.service.js';
 import { ApiError } from '../../utils/ApiError.js';
 
 export const registerUser = asyncHandler(async(req: Request, res: Response) => {
@@ -90,3 +90,17 @@ export async function logoutUser (req: Request, res: Response) {
       new ApiResponse(true, "Logged out successfully")
    );
 }
+
+export const verifyEmailController = asyncHandler(async (req, res) => {
+    const { token } = req.query;
+
+    if (!token || typeof token !== "string") {
+        throw new ApiError(400, "Verification token is required");
+    }
+
+    await verifyEmail(token);
+
+    return res.redirect(
+        `${process.env.CLIENT_URL}/login?verified=true`
+    );
+});

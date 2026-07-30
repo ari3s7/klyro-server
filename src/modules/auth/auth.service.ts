@@ -5,6 +5,7 @@ import type { LoginInput, RegisterInput } from "./auth.validators.js";
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
 import type { JwtPayload } from "../../types/jwt.types.js";
 import crypto from "crypto";
+import { sendVerificationEmail } from "../../email/email.service.js";
 
 
 export async function register(data: RegisterInput) {
@@ -30,22 +31,43 @@ export async function register(data: RegisterInput) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const avatarUrl = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(username)}`;
 
+    const token = crypto.randomBytes(32).toString("hex");
+
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+    const expires = new Date(Date.now() + 30 * 60 * 1000);
+
     const user = await prisma.user.create({
-        data: {
-            username,
-            email,
-            password: hashedPassword,
-            avatar: avatarUrl,
-        },
-        select : {
-            id: true,
-            username: true,
-            email: true,
-            avatar: true,
-            bio: true,
-            createdAt: true
-        }
-    });
+    data: {
+        username,
+        email,
+        password: hashedPassword,
+        avatar: avatarUrl,
+
+        isVerified: false,
+        verificationToken: hashedToken,
+        verificationTokenExpires: expires,
+    },
+    select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        bio: true,
+        createdAt: true,
+    },
+});
+
+const verificationUrl =
+    `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+
+    await sendVerificationEmail(
+        user.email,
+        verificationUrl
+    );
     return user;
 
 }
@@ -65,6 +87,12 @@ export async function login(data: LoginInput) {
     if(!isPasswordValid) {
         throw new ApiError(401, "Invalid email or password")
     };
+    if (!user.isVerified) {
+    throw new ApiError(
+        403,
+        "Please verify your email before logging in."
+    );
+}
 
     const payload: JwtPayload = {
         userId: user.id,
@@ -123,4 +151,42 @@ export async function logout(refreshToken: string) {
             token: hashedToken,
         }
     })
+}
+
+export async function verifyEmail(token: string) {
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+    const user = await prisma.user.findFirst({
+        where: {
+            verificationToken: hashedToken,
+        },
+    });
+
+    if (!user) {
+        throw new ApiError(400, "Invalid verification link");
+    }
+
+    if (
+        !user.verificationTokenExpires ||
+        user.verificationTokenExpires < new Date()
+    ) {
+        throw new ApiError(400, "Verification link has expired");
+    }
+
+    await prisma.user.update({
+        where: {
+            id: user.id,
+        },
+        data: {
+            isVerified: true,
+            verificationToken: null,
+            verificationTokenExpires: null,
+        },
+    }); 
+    return {
+        message: "Email verified successfully",
+    };
 }
